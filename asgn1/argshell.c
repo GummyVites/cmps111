@@ -12,6 +12,7 @@
   int shellLoop();
   extern char ** get_args();
   char cwd[256];
+  bool cwdFlag = false;
 
   //Exit command terminates the shell
   //shell commands exiting the shell
@@ -271,19 +272,22 @@
 
   int cdCommand(char **args, int i){
 
-    if (cwd == NULL) {
-      printf("cwd null");
-      if(getcwd(cwd, sizeof(cwd)) != NULL){
-        printf("got cwd");
-      }else{
+    if (cwdFlag == false) {
+      cwdFlag = true;
+      printf("cwdflag true");
+      if(getcwd(cwd, sizeof(cwd)) == NULL){
         perror("get cwd error");
+        return shellLoop();
+      }else{
+        perror("get cwd passed");
         return shellLoop();
       }
     }
 
+    printf("%s\n",args[i+1]);
     if ((args[i+1]) == NULL) {
       if (chdir(cwd) != 0) {
-        perror("chdir() failed");
+        perror("chdir() failed cwd");
         return shellLoop();
       }
     }
