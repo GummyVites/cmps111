@@ -28,7 +28,6 @@
     //On failure -1 is returned in the parent, no child process is created
     if ((pid < 0)) {
       printf("Error forking into child process");
-      exit(1);
     }
     //Child process
     else if (pid == 0) {
@@ -37,7 +36,6 @@
       //Array pointers termintated by NULL
       if (execvp(args[0], args) < 0) {
         perror("Error in executing \n");
-        exit(1);
       }
     }
     //parent process wait until child is done
@@ -127,7 +125,7 @@
 
   // special case >>
   //same as outputRedirection
-  //except append to the end. if no file then dont make new file
+  //except append to the end. if no file then make new file
   int outputRedirection2(char **args, int i){
     int stat;
     int pid;
@@ -138,7 +136,7 @@
       exit(1);
     }
     else if (pid == 0) {
-      newOutput = open(args[i+1],O_APPEND|O_WRONLY);
+      newOutput = open(args[i+1],O_APPEND|O_CREAT);
       if (dup2(newOutput, 1) < 0) {
         perror("dup2 error");
         exit(1);
@@ -331,6 +329,7 @@
   int shellLoop(){
     int stat = 1;
     char ** args;
+    printf("Command ('exit' to quit): ");
     while (1) {
       args = get_args();
       checkCommands(args);
@@ -349,7 +348,6 @@
         perror("get cwd error");
         return shellLoop();
       }else{
-        perror("get cwd passed");
         printf("%s\n", cwd);
       }
     }
