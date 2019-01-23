@@ -311,7 +311,7 @@ void checkCommands(char ** args) {
   else if (strcmp(args[0], "exit") == 0) {
       printf ("Exiting...\n");
       //break;
-      //exit(0)
+      exitCommand();
   }
   else if (strcmp(args[0], "cd") == 0) {
     cdCommand(args);
