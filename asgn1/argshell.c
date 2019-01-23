@@ -6,6 +6,7 @@
   #include <string.h>
   #include <fcntl.h>
   #include <sys/wait.h>
+  #include <limits.h>
 
 
   int shellLoop();
@@ -268,20 +269,21 @@
   }
 
   int cdCommand(char **args, int i){
-    char buf[BUFSIZ];
+    char cwd[PATH_MAX];
     char *cp;
 
     if (i == 0) {
-      if(cp = getcwd(buf, sizeof(buf))== NULL){
-        perror("get cwd error");
-      }else{
+      if(cp = getcwd(cwd, sizeof(cwd)) != NULL){
         printf("got cwd");
-      }
-      if (chdir(args[i+1]) != 0) {
-        perror("chdir() failed");
+      }else{
+        perror("get cwd error");
+        return shellLoop();
       }
     }
-
+    if (chdir(args[i+1]) != 0) {
+      perror("chdir() failed");
+      return shellLoop();
+    }
     return shellLoop();
   }
 
@@ -301,7 +303,7 @@
     }
 
     else {
-      for (int i = 0; args[i] != NULL; i++) {
+      for (int i = 1; args[i] != NULL; i++) {
         printf("Argument %d: %s\n", i, args[i]);
         if ((strcmp(args[i], "|") == 0)) {
           outputPiped(args, i);
