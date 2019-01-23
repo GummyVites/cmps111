@@ -7,34 +7,14 @@
 #include <fcntl.h>
 #include <sys/wait.h>
 
+
+int shellLoop();
 extern char ** get_args();
-
-int main() {
-  int stat;
-  char **args;
-
-  //Get args continue until exit is called
-  while (1) {
-    printf("Command ('exit' to quit): ");
-    args = get_args();
-    checkCommands(args);
-  }
-}
 
 //Exit command terminates the shell
 //shell commands exiting the shell
 void exitCommand() {
   exit(0);
-}
-
-int shellLoop(){
-  int stat = 1;
-  char ** args;
-  while (1) {
-    args = get_args();
-    checkCommands(args);
-  }
-  return (0);
 }
 
 //Runs commands
@@ -59,7 +39,7 @@ int executeCommand(char **args) {
   }
   //parent process wait until child is done
   else {
-    pid = wait( &stat)
+    pid = wait( &stat);
   }
   return (0);
 }
@@ -78,7 +58,7 @@ int inputRedirection(char **args, int i){
   //Child process
   else if (pid == 0) {
     //Read only open
-    readFile = open(args[i+1], O_RDONLY);
+    readFile = open(args[i+1], O_RDONLY | O_CREAT, 0755);
 
     //on cucess system returns the new file descriptor. on error -1 is returned
     //dup2(in, 0) ==  replace standard input with input part of pipe
@@ -91,7 +71,7 @@ int inputRedirection(char **args, int i){
     close(readFile);
 
     //Replace < with NULL so it knows when to stop
-    arg[i] = NULL;
+    args[i] = NULL;
     //the function only returns if an error has occurred. the return value is -1
     //Run the args
     //Array pointers termintated by NULL
@@ -107,7 +87,6 @@ int inputRedirection(char **args, int i){
 // special case >
 int outputRedirection(char **args, int i){
   int stat;
-  int pid;
   int newOutput;
 
   //Fork a child process
@@ -123,7 +102,7 @@ int outputRedirection(char **args, int i){
     //If the file does not exist, create it. If the O_CREAT option is used, then you must include the third parameter.
     //Combined with the O_CREAT option, it ensures that the caller must create the file. If the file already exists, the call will fail.
     //	Open the file so that it can be read from and written to.
-    newOutput = open(args[i+1],O_CREAT|O_EXCL| O_RDWR)
+    newOutput = open(args[i+1], O_WRONLY | O_CREAT, 0640);
     //dup into output
     if (dup2(newOutput, 1) < 0) {
       perror("dup2 error");
@@ -132,7 +111,7 @@ int outputRedirection(char **args, int i){
     //close
     close(newOutput);
     //NULL to know when it ends
-    arg[i] = NULL;
+    args[i] = NULL;
     //execute
     execvp(args[0], args);
 
@@ -156,13 +135,13 @@ int outputRedirection2(char **args, int i){
     exit(1);
   }
   else if (pid == 0) {
-    newOutput = open(args[i+1],O_APPEND|O_WRONLY)
+    newOutput = open(args[i+1],O_APPEND|O_WRONLY);
     if (dup2(newOutput, 1) < 0) {
       perror("dup2 error");
       exit(1);
     }
     close(newOutput);
-    arg[i] = NULL;
+    args[i] = NULL;
     execvp(args[0], args);
   }else{
     pid = wait(&stat);
@@ -179,26 +158,21 @@ int outputPiped(char **args, int i){
   int pid2;
   int stat;
 
-  //Create 2d array to
-  char **argsMatrix = [2][sizeof(args)]
+  char **args1 = malloc(sizeof(args));
+  char **args2 = malloc(sizeof(args));
 
-  //Populate 2d Array
-  for (int q = 0; q < 2; q++) {
-    for (int w = 0; w < sizeof(args); w++) {
-      argsMatrix[q][w] = args[w];
-    }
-  }
+  memcpy(args1, args, sizeof(args));
+  memcpy(args2, args, sizeof(args));
 
   args[i] = NULL;
 
-  //Populate
-  for (int k = 0; args[k] != NULL; k++) {
-    argsMatrix[0][k] = args[k];
+  //creates new arrays to store sections of the command line input
+  for(int j = 0; args[j] != NULL; j++) {
+      args1[j] = args[j];
   }
 
-  // populate with new
-  for (int j = i+1; args[j] != NULL; j++) {
-    argsMatrix[1][j] = args[j];
+  for(int z = i+1; args[z] != NULL; z++){
+      args2[z] = args[z];
   }
 
   //pipeArray[0] = read pipeArray[1] = writing
@@ -214,10 +188,10 @@ int outputPiped(char **args, int i){
 
   //child
   else if(pid == 0){
-    dup2(pipefd[0], 0);
-    close(pipefd[1]);
-    close(pipefd[0]);
-    execvp(args[i+1], argsMatrix[1][]);
+    dup2(pipeArray[0], 0);
+    close(pipeArray[1]);
+    close(pipeArray[0]);
+    execvp(args[i+1], args2);
     return shellLoop();
     }
   //parent
@@ -227,10 +201,10 @@ int outputPiped(char **args, int i){
     // parent's second child
     if (pid2 == 0){
       //copy into write
-      dup2(pipefd[1], 1);
-      close(pipefd[0]);
-      close(pipefd[1]);
-      execvp(args[0], argsMatrix[0][]);
+      dup2(pipeArray[1], 1);
+      close(pipeArray[0]);
+      close(pipeArray[1]);
+      execvp(args[0], args1);
       return shellLoop();
       }
     }
@@ -240,6 +214,8 @@ int outputPiped(char **args, int i){
 
 int semicolonRedirection(char **args, int i){
   int semicolonCounter = 0;
+  int status_child;
+  int pid_par;
 
   //count semicolons
   for (int i = 0; args[i] != NULL; i++) {
@@ -248,46 +224,35 @@ int semicolonRedirection(char **args, int i){
     }
   }
 
-  //create 2d array
-  char **argsMatrix = [2][sizeof(args)]
+  char **args1 = malloc(sizeof(args));
+  char **args2 = malloc(sizeof(args));
 
-  //populate 2d array
-  for (int q = 0; q < 2; q++) {
-    for (int w = 0; w < sizeof(args); w++) {
-      argsMatrix[q][w] = args[w];
-    }
-  }
+  memcpy(args1, args, sizeof(args));
+  memcpy(args2, args, sizeof(args));
 
-  //first ; is null
   args[i] = NULL;
 
-  //populate
-  for (int k = 0; args[k] != NULL; k++) {
-    argsMatrix[0][k] = args[k];
+  //creates new arrays to store sections of the command line input
+  for(int j = 0; args[j] != NULL; j++) {
+      args1[j] = args[j];
   }
 
-//populate
-  for (int j = i+1; args[j] != NULL; j++) {
-    argsMatrix[1][j] = args[j];
+  for(int z = i+1; args[z] != NULL; z++){
+      args2[z] = args[z];
   }
-
-
 
   int pid_child;
-  int status_child;
-  int pid_par;
-
   //fork
   pid_child = fork();
 
   //wile there are semiclon counters
   for (int p = 0; p < semicolonCounter; p++) {
     //child process
-    if (pip_child == 0) {
-      if (execvp(argsMatrix[0][0], argsMatrix[0][]) < 0) {
+    if (pid_child == 0) {
+      if(execvp(args1[0], args1) < 0) {
         printf("Error");
       }
-      else if (execvp(argsMatrix[1][0], argsMatrix[1][]) < 0) {
+      if(execvp(args2[0], args2) < 0){
         printf("Error");
       }
     }
@@ -296,13 +261,13 @@ int semicolonRedirection(char **args, int i){
       while(pid_par != pid_child){
         pid_par = wait(&status_child);
       }
-      return status_child
+      return status_child;
     }
   }
   return shellLoop();
 }
 
-int cdCommand(char **args, int i){
+int cdCommand(char **args){
   int pid;
   int stat;
   int dir;
@@ -315,6 +280,7 @@ int cdCommand(char **args, int i){
 
   if(pid < 0){
     perror("Error forking into child process");
+    exit(1);
   }
   //Child
   else if(pid == 0){
@@ -331,10 +297,9 @@ int cdCommand(char **args, int i){
     else{
       perror("cd fail");
     }
-    else{
+  }else{
       pid = wait(&stat);
     }
-  }
   return shellLoop();
 }
 
@@ -345,12 +310,13 @@ void checkCommands(char ** args) {
   }
   else if (strcmp(args[0], "exit") == 0) {
       printf ("Exiting...\n");
-      break;
+      //break;
+      //exit(0)
   }
   else if (strcmp(args[0], "cd") == 0) {
     cdCommand(args);
   } else {
-    for (i = 1; args[i] != NULL; i++) {
+    for (int i = 1; args[i] != NULL; i++) {
       printf("Argument %d: %s\n", i, args[i]);
       if ((strcmp(args[i], "|") == 0)) {
         outputPiped(args, i);
@@ -366,4 +332,26 @@ void checkCommands(char ** args) {
     }
   }
   executeCommand(args);
+}
+
+int shellLoop(){
+  int stat = 1;
+  char ** args;
+  while (1) {
+    args = get_args();
+    checkCommands(args);
+  }
+  return (0);
+}
+
+int main() {
+  int stat;
+  char **args;
+
+  //Get args continue until exit is called
+  while (1) {
+    printf("Command ('exit' to quit): ");
+    args = get_args();
+    checkCommands(args);
+  }
 }
