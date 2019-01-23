@@ -130,9 +130,9 @@
   //except append to the end. if no file then make new file
   int outputRedirection2(char **args, int i){
     int stat;
-    int pid;
     int newOutput;
 
+    int pid = fork();
     if (pid < 0) {
       printf("Error forking into child process");
       exit(1);
