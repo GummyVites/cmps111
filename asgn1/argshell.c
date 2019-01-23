@@ -7,6 +7,7 @@
   #include <fcntl.h>
   #include <sys/wait.h>
   #include <limits.h>
+  #include <stdbool.h>
 
 
   int shellLoop();
