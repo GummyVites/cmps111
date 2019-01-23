@@ -316,7 +316,7 @@ void checkCommands(char ** args) {
   else if (strcmp(args[0], "cd") == 0) {
     cdCommand(args);
   } else {
-    for (int i = 1; args[i] != NULL; i++) {
+    for (int i = 0; args[i] != NULL; i++) {
       printf("Argument %d: %s\n", i, args[i]);
       if ((strcmp(args[i], "|") == 0)) {
         outputPiped(args, i);
