@@ -158,8 +158,8 @@ int outputPiped(char **args, int i){
   int pid2;
   int stat;
 
-  char *args1 = malloc(sizeof(args));
-  char *args2 = malloc(sizeof(args));
+  char **args1 = malloc(sizeof(args));
+  char **args2 = malloc(sizeof(args));
 
   memcpy(args1, args, sizeof(args));
   memcpy(args2, args, sizeof(args));
@@ -224,8 +224,8 @@ int semicolonRedirection(char **args, int i){
     }
   }
 
-  char *args1 = malloc(sizeof(args));
-  char *args2 = malloc(sizeof(args));
+  char **args1 = malloc(sizeof(args));
+  char **args2 = malloc(sizeof(args));
 
   memcpy(args1, args, sizeof(args));
   memcpy(args2, args, sizeof(args));
