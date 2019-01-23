@@ -7,8 +7,6 @@
   #include <fcntl.h>
   #include <sys/wait.h>
   #include <limits.h>
-  #include <stdbool.h>
-
 
   int shellLoop();
   extern char ** get_args();
@@ -273,19 +271,6 @@
 
   int cdCommand(char **args, int i){
 
-    if (cwdFlag == false) {
-      cwdFlag = true;
-      printf("cwdflag true");
-      if(getcwd(cwd, sizeof(cwd)) == NULL){
-        perror("get cwd error");
-        return shellLoop();
-      }else{
-        perror("get cwd passed");
-        return shellLoop();
-      }
-    }
-
-    printf("%s\n",args[i+1]);
     if ((args[i+1]) == NULL) {
       if (chdir(cwd) != 0) {
         perror("chdir() failed cwd");
@@ -297,6 +282,7 @@
       perror("chdir() failed");
       return shellLoop();
     }
+
     return shellLoop();
   }
 
@@ -354,6 +340,18 @@
   int main() {
     int stat;
     char **args;
+
+    if (cwdFlag == false) {
+      cwdFlag = true;
+      printf("cwdflag true");
+      if(getcwd(cwd, sizeof(cwd)) == NULL){
+        perror("get cwd error");
+        return shellLoop();
+      }else{
+        perror("get cwd passed");
+        printf("%s\n", cwd);
+      }
+    }
     //Get args continue until exit is called
     while (1) {
       printf("Command ('exit' to quit): ");
