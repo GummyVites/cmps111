@@ -1,0 +1,10 @@
+{
+    "type": "sftp",
+    "host": "localhost",
+    "username": "kemalee",
+    "password": "nala1234",
+    "port": 3022,
+    "remotePath": "/usr/home/kemalee/cmps111",
+    "uploadOnSave": true,
+    "uploadConfigFile": false
+}
