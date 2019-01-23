@@ -11,6 +11,7 @@
 
   int shellLoop();
   extern char ** get_args();
+  char cwd[256];
 
   //Exit command terminates the shell
   //shell commands exiting the shell
@@ -269,17 +270,24 @@
   }
 
   int cdCommand(char **args, int i){
-    char cwd[PATH_MAX];
-    char *cp;
 
-    if (i == 0) {
-      if(cp = getcwd(cwd, sizeof(cwd)) != NULL){
+    if (cwd == NULL) {
+      printf("cwd null");
+      if(getcwd(cwd, sizeof(cwd)) != NULL){
         printf("got cwd");
       }else{
         perror("get cwd error");
         return shellLoop();
       }
     }
+
+    if ((args[i+1]) == NULL) {
+      if (chdir(cwd) != 0) {
+        perror("chdir() failed");
+        return shellLoop();
+      }
+    }
+
     if (chdir(args[i+1]) != 0) {
       perror("chdir() failed");
       return shellLoop();
@@ -341,7 +349,6 @@
   int main() {
     int stat;
     char **args;
-
     //Get args continue until exit is called
     while (1) {
       printf("Command ('exit' to quit): ");
