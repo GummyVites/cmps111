@@ -66,12 +66,12 @@
       //on cucess system returns the new file descriptor. on error -1 is returned
       //dup2(in, 0) ==  replace standard input with input part of pipe
       //Copy readFile into slot 0
-      if(dup(readFile, 0) < 0){
+      if(dup(readFile) < 0){
         perror("dup2 error");
         exit(1);
       }
       if (execvp(args[0], args) < 0 ) {
-        perror("execvp")
+        perror("execvp");
         return shellLoop();
       }
       close(readFile);
