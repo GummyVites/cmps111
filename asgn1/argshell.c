@@ -61,7 +61,9 @@
     }
     //Child process
     else if (pid == 0) {
+      printf("%s\n",args[0]);
       printf("%s\n",args[i+1]);
+      printf("%s\n",args);
       //Read only open
       readFile = open(args[i+1], O_RDONLY | O_CREAT, 0755);
       dup2(readFile, 0);
