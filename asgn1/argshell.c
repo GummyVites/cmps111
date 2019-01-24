@@ -105,6 +105,8 @@
         perror("dup2 error");
         exit(1);
       }
+      close(newOutput);
+      args[i] = NULL;
       //execute
       execvp(args[0], args);
       //close
