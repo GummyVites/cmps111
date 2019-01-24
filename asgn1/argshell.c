@@ -55,7 +55,7 @@
     int pid = fork();
     //On failure -1 is returned in the parent, no child process is created
     if (pid < 0) {
-      printf("Error forking into child process");
+      perror("Error forking into child process");
       exit(1);
     }
     //Child process
@@ -66,19 +66,15 @@
       //on cucess system returns the new file descriptor. on error -1 is returned
       //dup2(in, 0) ==  replace standard input with input part of pipe
       //Copy readFile into slot 0
-      if(dup2(readFile, 0) < 0){
+      if(dup(readFile, 0) < 0){
         perror("dup2 error");
         exit(1);
       }
-      //close unused files
+      if (execvp(args[0], args) < 0 ) {
+        perror("execvp")
+        return shellLoop();
+      }
       close(readFile);
-
-      //Replace < with NULL so it knows when to stop
-      args[i] = NULL;
-      //the function only returns if an error has occurred. the return value is -1
-      //Run the args
-      //Array pointers termintated by NULL
-      execvp(args[0], args);
     }
     //parent process wait until child is done
     else{
@@ -96,7 +92,7 @@
     int pid = fork();
     //On failure -1 is returned in the parent, no child process is created
     if (pid < 0) {
-      printf("Error forking into child process");
+      perror("Error forking into child process");
       exit(1);
     }
 
@@ -107,17 +103,15 @@
       //	Open the file so that it can be read from and written to.
       newOutput = open(args[i+1], O_WRONLY | O_CREAT, 0640);
       //dup into output
-      if (dup2(newOutput, 1) < 0) {
+      if (dup2(newOutput, 0) < 0) {
         perror("dup2 error");
         exit(1);
       }
+      //execute
+
+      execvp(args[0], args);
       //close
       close(newOutput);
-      //NULL to know when it ends
-      args[i] = NULL;
-      //execute
-      execvp(args[0], args);
-
     //parent process wait
     }else{
       pid = wait(&stat);
@@ -134,7 +128,7 @@
 
     int pid = fork();
     if (pid < 0) {
-      printf("Error forking into child process");
+      perror("Error forking into child process");
       exit(1);
     }
     else if (pid == 0) {
@@ -185,7 +179,7 @@
     pid = fork();
 
     if (pid < 0) {
-      printf("Error forking into child process");
+      perror("Error forking into child process");
       exit(1);
     }
 
@@ -253,10 +247,10 @@
       //child process
       if (pid_child == 0) {
         if(execvp(args1[0], args1) < 0) {
-          printf("Error");
+          perror("Error");
         }
         if(execvp(args2[0], args2) < 0){
-          printf("Error");
+          perror("Error");
         }
       }
       else{
@@ -345,7 +339,6 @@
 
     if (cwdFlag == false) {
       cwdFlag = true;
-      printf("cwdflag true");
       if(getcwd(cwd, sizeof(cwd)) == NULL){
         perror("get cwd error");
         return shellLoop();
