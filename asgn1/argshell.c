@@ -65,7 +65,7 @@
       //Read only open
       readFile = open(args[i+1], O_RDONLY);
       //put readfile into stdin
-      dup2(0, readFile);
+      dup2(readFile, 0);
       if (execvp(args[0], args) < 0 ) {
         perror("execvp");
         return shellLoop();
@@ -101,7 +101,7 @@
       //	Open the file so that it can be read from and written to.
       newOutput = open(args[i+1], O_WRONLY | O_CREAT, 0640);
       //dup into output
-      if (dup2(newOutput, 0) < 0) {
+      if (dup2(newOutput, 1) < 0) {
         perror("dup2 error");
         exit(1);
       }
