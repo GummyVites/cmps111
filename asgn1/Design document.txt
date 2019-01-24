@@ -1,0 +1,28 @@
+Kevin Lee
+
+Design document
+
+First I started out with the given code to start my main.
+
+In my main() I added the cwd flag and get the cwd for when "cd" is given as a command. Then get agrs is called into checkCommands()
+
+checkCommands() is part of the given code. It first checks if the first command is to check for NULL then "EXIT" then "cd". Then checks each character for a special character
+if there isn't a special character it just goes to executeCommand.
+
+in executeCommand() it creates a child process and in that process it executes the commands while the parent waits
+
+in inputRedirection() its for the special character "<". My thought process was that i'd save the the stdin and then use the file given as the input
+then execute the argument which will use stdin as the input which is the read file now. then place the stdin back in. But it seems to not work with the
+example given in the assignment pdf
+
+outputRedirection is for the special character ">". My though process is similar to the inputRedirection where I use the file name given as the output and place
+stdout into save . Then execute argument and then place stdout back in.
+
+outputRedirection2 is the same idea as outputRedirection but with >> which appends instead.
+
+for semicolonRedirection I tried to start backwards so the parent is the last command and waits for all its child command to finish which will make
+it start from the beginning and wait for the end. I didn't get to finish this part.
+
+pipecommand is the same as semicolonRedirection. Child needs to wait until parent is done. Wont work.
+
+cdCommand if its just "cd" then go back to first directory else go to named directory.
