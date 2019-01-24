@@ -51,6 +51,7 @@
   int inputRedirection(char **args, int i){
     int readFile;
     int stat;
+    int saved = dup(0);
     //Fork a child process
     int pid = fork();
     //On failure -1 is returned in the parent, no child process is created
@@ -60,20 +61,15 @@
     }
     //Child process
     else if (pid == 0) {
+      printf("%s\n",args[i+1]);
       //Read only open
       readFile = open(args[i+1], O_RDONLY | O_CREAT, 0755);
-
-      //on cucess system returns the new file descriptor. on error -1 is returned
-      //dup2(in, 0) ==  replace standard input with input part of pipe
-      //Copy readFile into slot 0
-      if(dup(readFile) < 0){
-        perror("dup2 error");
-        exit(1);
-      }
+      dup2(readFile, 0);
       if (execvp(args[0], args) < 0 ) {
         perror("execvp");
         return shellLoop();
       }
+      dup2(saved,0);
       close(readFile);
     }
     //parent process wait until child is done
