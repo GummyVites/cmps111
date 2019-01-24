@@ -66,6 +66,7 @@
       readFile = open(args[i+1], O_RDONLY);
       //put readfile into stdin
       dup2(readFile, 0);
+      args[i] = NULL;
       if (execvp(args[0], args) < 0 ) {
         perror("execvp");
         return shellLoop();
