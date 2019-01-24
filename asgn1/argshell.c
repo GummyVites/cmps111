@@ -27,7 +27,7 @@
     int pid = fork();
     //On failure -1 is returned in the parent, no child process is created
     if ((pid < 0)) {
-      printf("Error forking into child process");
+      perror("Error forking into child process");
       exit(0);
     }
     //Child process
@@ -51,6 +51,7 @@
   int inputRedirection(char **args, int i){
     int readFile;
     int stat;
+    //save stdin
     int saved = dup(0);
     //Fork a child process
     int pid = fork();
@@ -61,17 +62,16 @@
     }
     //Child process
     else if (pid == 0) {
-      printf("%s\n",args[0]);
-      printf("%s\n",args[i+1]);
-      printf("%s\n",args);
       //Read only open
-      readFile = open(args[i+1], O_RDONLY | O_CREAT, 0755);
-      dup2(readFile, 0);
+      readFile = open(args[i+1], O_RDONLY);
+      //put readfile into stdin
+      dup2(0, readFile);
       if (execvp(args[0], args) < 0 ) {
         perror("execvp");
         return shellLoop();
       }
-      dup2(saved,0);
+      //put stdin back in
+      dup2(saved,1);
       close(readFile);
     }
     //parent process wait until child is done
@@ -106,7 +106,6 @@
         exit(1);
       }
       //execute
-
       execvp(args[0], args);
       //close
       close(newOutput);
@@ -137,7 +136,10 @@
       }
       close(newOutput);
       args[i] = NULL;
-      execvp(args[0], args);
+      if (execvp(args[0], args) < 0 ) {
+        perror("execvp");
+        return shellLoop();
+      }
     }else{
       pid = wait(&stat);
     }
@@ -145,125 +147,54 @@
     return shellLoop();
   }
 
-  // special character |
-  int outputPiped(char **args, int i){
-
-    int pipeArray[2];
-    int pid;
-    int pid2;
-    int stat;
-
-    char **args1 = malloc(sizeof(args));
-    char **args2 = malloc(sizeof(args));
-
-    memcpy(args1, args, sizeof(args));
-    memcpy(args2, args, sizeof(args));
-
-    args[i] = NULL;
-
-    //creates new arrays to store sections of the command line input
-    for(int j = 0; args[j] != NULL; j++) {
-        args1[j] = args[j];
-    }
-
-    for(int z = i+1; args[z] != NULL; z++){
-        args2[z] = args[z];
-    }
-
-    //pipeArray[0] = read pipeArray[1] = writing
-    pipe(pipeArray);
-
-    //Fork child process
-    pid = fork();
-
-    if (pid < 0) {
-      perror("Error forking into child process");
-      exit(1);
-    }
-
-    //child
-    else if(pid == 0){
-      dup2(pipeArray[0], 0);
-      close(pipeArray[1]);
-      close(pipeArray[0]);
-      execvp(args[i+1], args2);
-      return shellLoop();
-      }
-    //parent
-    else{
-      //Fork second child process
-      pid2 = fork();
-      // parent's second child
-      if (pid2 == 0){
-        //copy into write
-        dup2(pipeArray[1], 1);
-        close(pipeArray[0]);
-        close(pipeArray[1]);
-        execvp(args[0], args1);
-        return shellLoop();
-        }
-      }
-      //Parent returns
-      return shellLoop();
-  }
-
   int semicolonRedirection(char **args, int i){
-    int semicolonCounter = 0;
-    int status_child;
-    int pid_par;
-
-    //count semicolons
-    for (int i = 0; args[i] != NULL; i++) {
-      if (strcmp(args[i], ";") == 0) {
-        semicolonCounter+=1;
-      }
-    }
-
-    char **args1 = malloc(sizeof(args));
-    char **args2 = malloc(sizeof(args));
-
-    memcpy(args1, args, sizeof(args));
-    memcpy(args2, args, sizeof(args));
-
-    args[i] = NULL;
-
-    //creates new arrays to store sections of the command line input
-    for(int j = 0; args[j] != NULL; j++) {
-        args1[j] = args[j];
-    }
-
-    for(int z = i+1; args[z] != NULL; z++){
-        args2[z] = args[z];
-    }
-
-    int pid_child;
     //fork
-    pid_child = fork();
+    int pid = fork();
+    int stat;
+    if ((pid < 0)) {
+      perror("Error forking into child process");
+      exit(0);
+    }
+    //child process
+    else if (pid == 0) {
+      //wile there are semiclon counters
+      //Gonna go backwards.
+      for (int i = sizeof(args); args[i] != NULL; i--) {
+        int count = 0;
+        if (strcmp(args[i], ";") == 0) {
+          //Fork a child process
+          int pidSecond = fork();
+          //On failure -1 is returned in the parent, no child process is created
+          if ((pidSecond < 0)) {
+            perror("Error forking into child process");
+            exit(0);
+          }
+          //Child process
+          else if (pidSecond == 0) {
+            //the function only returns if an error has occurred. the return value is -1
+            //Run the args
+            //Array pointers termintated by NULL
+            if (execvp(args[i - count], args) < 0) {
+              perror("Error in executing \n");
+              exit(0);
+            }
+          }
+          //parent process wait until child is done
+          else {
+            pid = wait( &stat);
 
-    //wile there are semiclon counters
-    for (int p = 0; p < semicolonCounter; p++) {
-      //child process
-      if (pid_child == 0) {
-        if(execvp(args1[0], args1) < 0) {
-          perror("Error");
+          }
         }
-        if(execvp(args2[0], args2) < 0){
-          perror("Error");
-        }
-      }
-      else{
-        //while
-        while(pid_par != pid_child){
-          pid_par = wait(&status_child);
-        }
-        return status_child;
+        count += 1;
       }
     }
     return shellLoop();
   }
 
+  //cd Commands
   int cdCommand(char **args, int i){
 
+    //if cd has nothing go to cwd
     if ((args[i+1]) == NULL) {
       if (chdir(cwd) != 0) {
         perror("chdir() failed cwd");
@@ -271,6 +202,7 @@
       }
     }
 
+    //go to directory
     if (chdir(args[i+1]) != 0) {
       perror("chdir() failed");
       return shellLoop();
@@ -298,7 +230,7 @@
       for (int i = 1; args[i] != NULL; i++) {
         printf("Argument %d: %s\n", i, args[i]);
         if ((strcmp(args[i], "|") == 0)) {
-          outputPiped(args, i);
+          //Did not finish
         }
         else if (strcmp(args[i], "<") == 0) {
           inputRedirection(args, i);
@@ -334,14 +266,12 @@
   int main() {
     int stat;
     char **args;
-
+    //if first time get cwd
     if (cwdFlag == false) {
       cwdFlag = true;
       if(getcwd(cwd, sizeof(cwd)) == NULL){
         perror("get cwd error");
         return shellLoop();
-      }else{
-        printf("%s\n", cwd);
       }
     }
     //Get args continue until exit is called

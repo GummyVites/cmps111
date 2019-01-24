@@ -1,0 +1,14 @@
+Kevin Lee
+
+Directions:
+1: run make
+2: run ./myshell
+
+files:
+
+1. argshell.c
+2. lex.yy.c
+3. shell.l
+4. Makefile
+5. README
+6. Design document
