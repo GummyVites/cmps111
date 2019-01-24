@@ -28,7 +28,7 @@
     //On failure -1 is returned in the parent, no child process is created
     if ((pid < 0)) {
       perror("Error forking into child process");
-      shellLoop()
+      shellLoop();
     }
     //Child process
     else if (pid == 0) {
@@ -37,7 +37,7 @@
       //Array pointers termintated by NULL
       if (execvp(args[0], args) < 0) {
         perror("Error in executing \n");
-        shellLoop()
+        shellLoop();
       }
     }
     //parent process wait until child is done
@@ -58,7 +58,7 @@
     //On failure -1 is returned in the parent, no child process is created
     if (pid < 0) {
       perror("Error forking into child process");
-      shellLoop()
+      shellLoop();
     }
     //Child process
     else if (pid == 0) {
@@ -92,7 +92,7 @@
     //On failure -1 is returned in the parent, no child process is created
     if (pid < 0) {
       perror("Error forking into child process");
-      shellLoop()
+      shellLoop();
     }
 
     //Child process
@@ -104,7 +104,7 @@
       //dup into output
       if (dup2(newOutput, 1) < 0) {
         perror("dup2 error");
-        shellLoop()
+        shellLoop();
       }
       close(newOutput);
       args[i] = NULL;
@@ -129,13 +129,13 @@
     int pid = fork();
     if (pid < 0) {
       perror("Error forking into child process");
-      shellLoop()
+      shellLoop();
     }
     else if (pid == 0) {
       newOutput = open(args[i+1],O_APPEND | O_CREAT | O_WRONLY );
       if (dup2(newOutput, 1) < 0) {
         perror("dup2 error");
-        shellLoop()
+        shellLoop();
       }
       close(newOutput);
       args[i] = NULL;
@@ -156,7 +156,7 @@
     int stat;
     if ((pid < 0)) {
       perror("Error forking into child process");
-      shellLoop()
+      shellLoop();
     }
     //child process
     else if (pid == 0) {
@@ -170,7 +170,7 @@
           //On failure -1 is returned in the parent, no child process is created
           if ((pidSecond < 0)) {
             perror("Error forking into child process");
-            shellLoop()
+            shellLoop();
           }
           //Child process
           else if (pidSecond == 0) {
@@ -179,7 +179,7 @@
             //Array pointers termintated by NULL
             if (execvp(args[i - count], args) < 0) {
               perror("Error in executing \n");
-              shellLoop()
+              shellLoop();
             }
           }
           //parent process wait until child is done
@@ -200,7 +200,7 @@
     int stat;
     if ((pid < 0)) {
       perror("Error forking into child process");
-      shellLoop()
+      shellLoop();
     }
     //child process
     else if (pid == 0) {
@@ -214,7 +214,7 @@
           //On failure -1 is returned in the parent, no child process is created
           if ((pidSecond < 0)) {
             perror("Error forking into child process");
-            shellLoop()
+            shellLoop();
           }
           //Child process
           else if (pidSecond == 0) {
@@ -223,7 +223,7 @@
             //Array pointers termintated by NULL
             if (execvp(args[i - count], args) < 0) {
               perror("Error in executing \n");
-              shellLoop()
+              shellLoop();
             }
           }
           //parent process wait until child is done
