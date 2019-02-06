@@ -565,22 +565,22 @@ runq_lottery_remove(struct runq *rq, struct thread *td){
 		largest_nice_value = 0;
 	}
 
-	else if(smallest_nice_value == td->td_proc->p_nice){
-		TAILQ_FOREACH(td, rqh, td_runq){
-			if( small_ticket_counter > td->td_proc->p_nice){
-				small_ticket_counter = td->td_proc->p_nice;
-			}
-	}
-	smallest_nice_value = small_ticket_counter;
-	if(largest_nice_value == td->td_proc->p_nice){
-		TAILQ_FOREACH(td, rqh, td_runq){
-			if( large_ticket_counter < td->td_proc->p_nice){
-				large_ticket_counter = td->td_proc->p_nice;
-			}
-			largest_nice_value = large_ticket_counter;
-		}
-	}
-	}
+	// else if(smallest_nice_value == td->td_proc->p_nice){
+	// 	TAILQ_FOREACH(td, rqh, td_runq){
+	// 		if( small_ticket_counter > td->td_proc->p_nice){
+	// 			small_ticket_counter = td->td_proc->p_nice;
+	// 		}
+	// }
+	// smallest_nice_value = small_ticket_counter;
+	// if(largest_nice_value == td->td_proc->p_nice){
+	// 	TAILQ_FOREACH(td, rqh, td_runq){
+	// 		if( large_ticket_counter < td->td_proc->p_nice){
+	// 			large_ticket_counter = td->td_proc->p_nice;
+	// 		}
+	// 		largest_nice_value = large_ticket_counter;
+	// 	}
+	// }
+	// }
 	kernal_print(1);
 	TAILQ_REMOVE(rqh, td, td_runq);
 }
