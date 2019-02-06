@@ -564,7 +564,7 @@ runq_lottery_remove(struct runq *rq, struct thread *td){
 		smallest_nice_value = 0;
 		largest_nice_value = 0;
 	}
-	
+
 	else if(smallest_nice_value == td->td_proc->p_nice){
 		TAILQ_FOREACH(td, rqh, td_runq){
 			if( small_ticket_counter > td->td_proc->p_nice){
@@ -577,7 +577,7 @@ runq_lottery_remove(struct runq *rq, struct thread *td){
 			if( large_ticket_counter < td->td_proc->p_nice){
 				large_ticket_counter = td->td_proc->p_nice;
 			}
-			largest_nice_value = large_ticket_counter
+			largest_nice_value = large_ticket_counter;
 		}
 	}
 	}
