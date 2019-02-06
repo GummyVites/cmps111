@@ -1,4 +1,3 @@
-// MODIFIED VERSION
 /*-
  * Copyright (c) 2001 Jake Burkholder <jake@FreeBSD.org>
  * All rights reserved.
@@ -43,30 +42,8 @@ __FBSDID("$FreeBSD: releng/11.2/sys/kern/kern_switch.c 327481 2018-01-02 00:14:4
 #include <sys/sched.h>
 #include <sys/smp.h>
 #include <sys/sysctl.h>
+
 #include <machine/cpu.h>
-
-/*
-	Whenever a process is added to or removed from the lottery queue you must 
-	print (using a kernel print that can be read using dmesg) a statement with 
-	statistics of the event: (1) the event type, add or remove, (2) the size 
-	of the queue, (3) the smallest number of tickets of a process in the 
-	lottery queue, (4) the largest number of tickets of a process in the 
-	lottery queue, (5) the total number of tickets of all processes, (6) 
-	the number of tickets of the process added to or removed from the lottery queue.
-*/
-
-static void kernal_print(int eventType);
-#define LONG_MAX 9223372036854775807
-long total_niceness = 0;
-long lottery_queue_size = 0;
-<<<<<<< HEAD
-long smallest_nice_value = 9223372036854775807;
-=======
-long smallest_nice_value = 0;
->>>>>>> d16378e5321c74a1f928b6ef7abe6c0a3b925508
-long largest_nice_value = 0;
-long add_remove_counter = 0;
-
 
 /* Uncomment this to enable logging of critical_enter/exit. */
 #if 0
@@ -132,8 +109,6 @@ SCHED_STAT_DEFINE_VAR(remotepreempt,
     &DPCPU_NAME(sched_switch_stats[SWT_REMOTEPREEMPT]), "");
 SCHED_STAT_DEFINE_VAR(remotewakeidle,
     &DPCPU_NAME(sched_switch_stats[SWT_REMOTEWAKEIDLE]), "");
-
-
 
 static int
 sysctl_stats_reset(SYSCTL_HANDLER_ARGS)
@@ -383,23 +358,6 @@ runq_setbit(struct runq *rq, int pri)
 	rqb->rqb_bits[RQB_WORD(pri)] |= RQB_BIT(pri);
 }
 
-void 
-kernal_print(int eventType){
-	// 0 = add event type
-	// 1 = delete event type
-	if(eventType == 0){
-		printf("event type add\n");
-		printf("event type add\n");
-	}else{
-		printf("event type remove\n");
-		printf("event type remove\n");
-	}
-	printf("lottery queue size : %ld\n", lottery_queue_size);
-	printf("smallest number of tickets in lottery queue : %ld\n", smallest_nice_value);
-	printf("largest number of tickets in lottery queue : %ld\n", largest_nice_value);
-	printf("total number of tickets of all processes : %ld\n", total_niceness);
-	printf("the number of tickets of the process added to or removed from the lottery queue : %ld\n", add_remove_counter);
-}
 /*
  * Add the thread to the queue specified by its priority, and set the
  * corresponding status bit.
@@ -409,39 +367,11 @@ runq_add(struct runq *rq, struct thread *td, int flags)
 {
 	struct rqhead *rqh;
 	int pri;
-<<<<<<< HEAD
-	pri = td->td_priority / RQ_PPQ;
 
+	pri = td->td_priority / RQ_PPQ;
+	td->td_rqindex = pri;
 	runq_setbit(rq, pri);
 	rqh = &rq->rq_queues[pri];
-	td->td_rqindex = pri;
-=======
-	printf("I AM ADDING kirby ++++++++++++++++++++++++++++");
-	pri = td->td_priority / RQ_PPQ;
-	// check if pri is in the time sharing range.
-	// 
-	runq_setbit(rq, pri);
-	if( pri >= 30 && pri <= 55){
-		printf("Adding to Lottery Queue ================================ ");
-		rqh = &rq->rq_queues[50]; // THIS IS THE LOTTERY QUEUE
-		td->td_rqindex = 50;
-		long nice_value = td->td_proc->p_nice + 21;
-		total_niceness += nice_value;
-		lottery_queue_size += 1;
-		if(smallest_nice_value > nice_value){
-			smallest_nice_value = nice_value;
-		}
-		if(largest_nice_value < nice_value){
-			largest_nice_value = nice_value;
-		}
-		add_remove_counter += 1;
-		kernal_print(0);
-	}
-	else{
-		rqh = &rq->rq_queues[pri];
-		td->td_rqindex = pri;
-	}
->>>>>>> d16378e5321c74a1f928b6ef7abe6c0a3b925508
 	CTR4(KTR_RUNQ, "runq_add: td=%p pri=%d %d rqh=%p",
 	    td, td->td_priority, pri, rqh);
 	if (flags & SRQ_PREEMPTED) {
@@ -456,32 +386,10 @@ runq_add_pri(struct runq *rq, struct thread *td, u_char pri, int flags)
 {
 	struct rqhead *rqh;
 
-	printf("I AM ADDING kirby ++++++++++++++++++++++++++++");
-	//KASSERT(pri < RQ_NQS, ("runq_add_pri: %d out of range", pri));
-	pri	= 50;
-	runq_setbit(rq, pri);
-	if( pri >= 30 && pri <= 55){
-		printf("Adding to Lottery Queue ================================ ");
-		rqh = &rq->rq_queues[50]; // THIS IS THE LOTTERY QUEUE
-		long nice_value = td->td_proc->p_nice + 21;
-		total_niceness += nice_value;
-		lottery_queue_size += 1;
-		if(smallest_nice_value > nice_value){
-			smallest_nice_value = nice_value;
-		}
-		if(largest_nice_value < nice_value){
-			largest_nice_value = nice_value;
-		}
-		add_remove_counter += 1;
-		kernal_print(0);
-	}
-	else{
-		rqh = &rq->rq_queues[pri];
-	}
-<<<<<<< HEAD
+	KASSERT(pri < RQ_NQS, ("runq_add_pri: %d out of range", pri));
 	td->td_rqindex = pri;
-=======
->>>>>>> d16378e5321c74a1f928b6ef7abe6c0a3b925508
+	runq_setbit(rq, pri);
+	rqh = &rq->rq_queues[pri];
 	CTR4(KTR_RUNQ, "runq_add_pri: td=%p pri=%d idx=%d rqh=%p",
 	    td, td->td_priority, pri, rqh);
 	if (flags & SRQ_PREEMPTED) {
@@ -493,7 +401,7 @@ runq_add_pri(struct runq *rq, struct thread *td, u_char pri, int flags)
 /*
  * Return true if there are runnable processes of any priority on the run
  * queue, false otherwise.  Has no side effects, does not modify the run
- * queue structure
+ * queue structure.
  */
 int
 runq_check(struct runq *rq)
@@ -564,24 +472,10 @@ runq_choose(struct runq *rq)
 	struct rqhead *rqh;
 	struct thread *td;
 	int pri;
-	long rand_ticket;
 
 	while ((pri = runq_findbit(rq)) != -1) {
-		if( pri >= 30 && pri <= 55){
-			rqh = &rq->rq_queues[50];
-			rand_ticket = random() % total_niceness + 1;
-			long current_ticket_value = (TAILQ_FIRST(rqh))->td_proc->p_nice;
-			TAILQ_FOREACH(td, rqh, td_runq){
-				if( rand_ticket <= current_ticket_value){
-					return td;
-				}
-				current_ticket_value += (td->td_proc->p_nice + 21);
-			}
-		}
-		else{
-			rqh = &rq->rq_queues[pri];
-			td = TAILQ_FIRST(rqh);
-		}
+		rqh = &rq->rq_queues[pri];
+		td = TAILQ_FIRST(rqh);
 		KASSERT(td != NULL, ("runq_choose: no thread on busy queue"));
 		CTR3(KTR_RUNQ,
 		    "runq_choose: pri=%d thread=%p rqh=%p", pri, td, rqh);
@@ -598,62 +492,19 @@ runq_choose_from(struct runq *rq, u_char idx)
 	struct rqhead *rqh;
 	struct thread *td;
 	int pri;
-	long rand_ticket;
-	rand_ticket = random() % total_niceness + 1;
-	long current_ticket_value = 0;
 
-	rqh	= &rq->rq_queues[50];
-	printf("Choosing time sharing process with pri:%d\n", pri);
-	printf("Initial current ticket value = %ld\n", current_ticket_value);
-	n1	= TAILQ_FIRST(rqh);
-	while (n1 != NULL)	{
-		n2	= TAILQ_NEXT(n1, rq);
-		if( rand_ticket <= current_ticket_value ){
-			return n2;
-		}
-		current_ticket_value += (n2->td_proc->p_nice + 21);
-		free(n1);
-		n1	= n2;
+	if ((pri = runq_findbit_from(rq, idx)) != -1) {
+		rqh = &rq->rq_queues[pri];
+		td = TAILQ_FIRST(rqh);
+		KASSERT(td != NULL, ("runq_choose: no thread on busy queue"));
+		CTR4(KTR_RUNQ,
+		    "runq_choose_from: pri=%d thread=%p idx=%d rqh=%p",
+		    pri, td, td->td_rqindex, rqh);
+		return (td);
 	}
+	CTR1(KTR_RUNQ, "runq_choose_from: idlethread pri=%d", pri);
+
 	return (NULL);
-
-	// if ((pri = runq_findbit_from(rq, idx)) != -1) {
-	// 	if( pri >= 30 && pri <= 55){
-	// 		printf("Choosing time sharing process with pri:%d\n", pri);
-	// 		rqh = &rq->rq_queues[50];
-	// 		printf("Initial current ticket value = %ld\n", current_ticket_value);
-	// 		n1	= TAILQ_FIRST(rqh);
-	// 		while (n1 != NULL)	{
-	// 			n2	= TAILQ_NEXT(n1, rq);
-	// 			if( rand_ticket <= current_ticket_value ){
-	// 				return td;
-	// 			}
-	// 			current_ticket_value += (td->td_proc->p_nice + 21);
-	// 			free(n1);
-	// 			n1	= n2;
-	// 		}
-	// 		// TAILQ_FOREACH(td, rqh, td_runq){
-	// 		// 	printf("current ticket value = %ld\n", current_ticket_value);
-	// 		// 	printf("rand_ticket = %ld\n", rand_ticket);
-	// 		// 	if( rand_ticket <= current_ticket_value){
-	// 		// 		return td;
-	// 		// 	}
-	// 		// 	current_ticket_value += (td->td_proc->p_nice + 21);
-	// 		// }
-	// 	}
-	// 	else{
-	// 		rqh = &rq->rq_queues[pri];
-	// 		td = TAILQ_FIRST(rqh);
-	// 	}
-	// 	KASSERT(td != NULL, ("runq_choose: no thread on busy queue"));
-	// 	CTR4(KTR_RUNQ,
-	// 	    "runq_choose_from: pri=%d thread=%p idx=%d rqh=%p",
-	// 	    pri, td, td->td_rqindex, rqh);
-	// 	return (td);
-	// }
-	// CTR1(KTR_RUNQ, "runq_choose_from: idlethread pri=%d", pri);
-
-	// return (NULL);
 }
 /*
  * Remove the thread from the queue specified by its priority, and clear the
@@ -663,6 +514,7 @@ runq_choose_from(struct runq *rq, u_char idx)
 void
 runq_remove(struct runq *rq, struct thread *td)
 {
+
 	runq_remove_idx(rq, td, NULL);
 }
 
@@ -675,31 +527,8 @@ runq_remove_idx(struct runq *rq, struct thread *td, u_char *idx)
 	KASSERT(td->td_flags & TDF_INMEM,
 		("runq_remove_idx: thread swapped out"));
 	pri = td->td_rqindex;
-	rqh = &rq->rq_queues[pri];
-	long large_ticket_counter = 0;
-	long small_ticket_counter = LONG_MAX;
-	if( pri >= 30 && pri <= 55){
-		total_niceness -= td->td_proc->p_nice;
-		lottery_queue_size -= 1;
-		
-		if(smallest_nice_value == td->td_proc->p_nice){
-			TAILQ_FOREACH(td, rqh, td_runq){
-				if( small_ticket_counter < td->td_proc->p_nice){
-					smallest_nice_value = td->td_proc->p_nice;
-				}
-		}
-		}
-		if(largest_nice_value == td->td_proc->p_nice){
-			TAILQ_FOREACH(td, rqh, td_runq){
-				if( large_ticket_counter < td->td_proc->p_nice){
-					largest_nice_value = td->td_proc->p_nice;
-				}
-		}
-		}
-		add_remove_counter += 1;
-		kernal_print(1);						
-	}		
 	KASSERT(pri < RQ_NQS, ("runq_remove_idx: Invalid index %d\n", pri));
+	rqh = &rq->rq_queues[pri];
 	CTR4(KTR_RUNQ, "runq_remove_idx: td=%p, pri=%d %d rqh=%p",
 	    td, td->td_priority, pri, rqh);
 	TAILQ_REMOVE(rqh, td, td_runq);

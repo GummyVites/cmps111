@@ -13,40 +13,86 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 
-int main() {
-   time_t t, c, end;
-   double time_taken;
-   time_t rawtime;
-   t = time(&rawtime);
-   for (int i=0;i<10;i++) {
-      int status;
-         pid_t pid = fork();
-         if (pid < 0) {
-            perror("fork failed");
-            continue;
-         } 
-         if (pid != 0) {   //parent code
-            waitpid(-1, &status, 0);
-         } else {             //child code
-            if(i < 5){
-                nice(5);
-            }
-            else if(i >= 5 && i < 10){
-                nice(10);
-            }
-            else{
-                nice(18);
-            }
-            usleep(15000);
-            // printf("[%d] [%d] i=%d\n", getppid(), getpid(), i);
-            c = time(&rawtime);
-            // time_taken = ((double)c)/CLOCKS_PER_SEC;
-            printf("Time@child: %ld\n", c); 
-            // execvp(args[0], args);
+#define THOUSAND 10000
+
+int main(int argc, char ** argv) {
+
+   int first, sec, third;
+   if(argc < 3){
+      printf("Usage: input 3 integers between -20 and 19\n");
+      exit(1);
+   }
+   else{
+      first    = atoi(argv[1]);
+      sec      = atoi(argv[2]);
+      third    = atoi(argv[3]);
+   }
+   pid_t parent, child1, child2;
+   id_t p1_id, p2_id, p3_id;
+
+   //sleep for one sec
+   struct timespec tw = { .tv_sec = 0, .tv_nsec = 10000000 }; 
+   int stat;
+   int process = 1;
+   clock_t p1_start, p1_end;
+   clock_t p2_start, p2_end;
+   clock_t p3_start, p3_end;
+
+   double p1_time_taken, p2_time_taken, p3_time_taken;
+   long stupidmath1=0, stupidmath2=0, stupidmath3=0;
+
+   int pid  = fork();
+   switch(pid){
+      case -1:
+         printf("fork error");
+         break;
+      case  0:
+         nice(sec);
+         p2_start    = clock();
+         for(long i=0; i<THOUSAND; i++){
+            stupidmath1++;
+            usleep(1500);
+            //nanosleep(&tw, 0);
+            // pid = wait(&stat);
+         }
+         p2_end      = clock();
+         p2_time_taken = ((double) (p2_end - p2_start))/CLOCKS_PER_SEC;
+         printf("Process %d with %d niceness ran in %f time\n", getpid(), getpriority(PRIO_PROCESS, getpid()), p2_time_taken);
+         break;
+      default:
+         pid = fork();
+         switch(pid){
+            case -1:
+               printf("fork error");
+               break;
+            case  0:
+               nice(third);
+               p3_start    = clock();
+               for(long i=0; i<THOUSAND; i++){
+                  stupidmath2++;
+                  usleep(1500);
+                  //nanosleep(&tw, 0);
+               }
+               p3_end      = clock();
+               p3_time_taken = ((double) (p3_end - p3_start))/CLOCKS_PER_SEC;
+               printf("Process %d with %d niceness ran in %f time\n", getpid(), getpriority(PRIO_PROCESS, getpid()), p3_time_taken);
+               break;
+            default:
+               pid = wait(&stat);
+               // nice(first);
+               // p1_start    = clock();
+               // int stat;
+               // for(long i=0; i<THOUSAND; i++){
+               //    stupidmath3++;
+               //    usleep(15000);
+               //    //nanosleep(&tw, 0);
+               //    // pid = wait(&stat);
+               // }
+               // p1_end      = clock();
+               // p1_time_taken = ((double) (p1_end - p1_start))/CLOCKS_PER_SEC;
+               // printf("Process %d with %d niceness ran in %f time\n", getpid(), getpriority(PRIO_PROCESS, getpid()), p1_time_taken);
+               break;
          }
    }
-   end = time(&rawtime);
-   // time_taken = ((double)end-t)/CLOCKS_PER_SEC;
-   printf("Time2: %ld\n", end); 
-   // printf("[%d] [%d] hi\n", getppid(), getpid());
+   exit(0);
 }

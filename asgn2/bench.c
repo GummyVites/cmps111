@@ -8,10 +8,10 @@
 #include<unistd.h> 
 #include<sys/wait.h>
 
-#define FULL 1000000000
-#define QRTR 250000000
-#define HALF 500000000
-#define TQRT 750000000
+#define FULL 50000000
+#define QRTR 12500000
+#define HALF 25000000
+#define TQRT 37500000
 
 void simulate(int parentNiceness, int firstChildNiceness, int secondChildNiceness) {
     int C1_avrg = 0;
@@ -134,26 +134,26 @@ void simulate(int parentNiceness, int firstChildNiceness, int secondChildNicenes
     }
 	float magnitude = 5.0;
         if(c2 == 0){
-            printf("Average time for C1: %.6f\n", (float)C1_avrg/magnitude);
-            printf("Average time for C2: %.6f\n", (float)C2_avrg/magnitude);
-            printf("Average time for C3: %.6f\n", (float)C3_avrg/magnitude);
-            printf("Average time for C4: %.6f\n", (float)C4_avrg/magnitude);
+            // printf("Average time for C1: %.6f\n", (float)C1_avrg/magnitude);
+            // printf("Average time for C2: %.6f\n", (float)C2_avrg/magnitude);
+            // printf("Average time for C3: %.6f\n", (float)C3_avrg/magnitude);
+            printf("Average time for child2: %.6f\n", (float)C4_avrg/magnitude);
 		    exit(0);
 	    }
         if(c1 == 0){
             wait(NULL);
-            printf("Average time for B1: %.6f\n", (float)B1_avrg/magnitude);
-            printf("Average time for B2: %.6f\n", (float)B2_avrg/magnitude);
-            printf("Average time for B3: %.6f\n", (float)B3_avrg/magnitude);
-            printf("Average time for B4: %.6f\n", (float)B4_avrg/magnitude);
+            // printf("Average time for B1: %.6f\n", (float)B1_avrg/magnitude);
+            // printf("Average time for B2: %.6f\n", (float)B2_avrg/magnitude);
+            // printf("Average time for B3: %.6f\n", (float)B3_avrg/magnitude);
+            printf("Average time for child1: %.6f\n", (float)B4_avrg/magnitude);
             exit(0);
         }
         if(getpid() == parent_pid){
             wait(NULL);
-            printf("Average time for A1: %.6f\n", (float)A1_avrg/magnitude);
-            printf("Average time for A2: %.6f\n", (float)A2_avrg/magnitude);
-            printf("Average time for A3: %.6f\n", (float)A3_avrg/magnitude);
-            printf("Average time for A4: %.6f\n", (float)A4_avrg/magnitude);
+            // printf("Average time for A1: %.6f\n", (float)A1_avrg/magnitude);
+            // printf("Average time for A2: %.6f\n", (float)A2_avrg/magnitude);
+            // printf("Average time for A3: %.6f\n", (float)A3_avrg/magnitude);
+            printf("Average time for parent: %.6f\n", (float)A4_avrg/magnitude);
         }
 }
 
@@ -162,9 +162,9 @@ int main(int argc, char ** argv){
     // set1: 5, 5, 10
     // set2: 14, 6, 12
     printf("executing..\n");
-    int parentNice = atoi(argv[0]);
-    int firstNice = atoi(argv[1]);
-    int secondNice = atoi(argv[2]);
+    int parentNice = atoi(argv[1]);
+    int firstNice = atoi(argv[2]);
+    int secondNice = atoi(argv[3]);
     simulate(parentNice, firstNice, secondNice);
 }
 
