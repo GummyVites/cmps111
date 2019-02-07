@@ -458,7 +458,7 @@ runq_add_lottery(struct runq *rq, struct thread *td){
 		}
 	}
 	add_remove_counter += 1;
-	kernal_print(0);
+	// kernal_print(0);
 	CTR4(KTR_RUNQ, "lottery_add: td=%p pri=%d %d rqh=%p",
 	    td, td->td_priority, pri, rqh);
 	TAILQ_INSERT_HEAD(rqh, td, td_runq);
@@ -573,7 +573,9 @@ runq_lottery_remove(struct runq *rq, struct thread *td){
 	}
 
 	if(smallest_nice_value == td->td_proc->p_nice){
+		printf("in Smallest nice\n");
 		TAILQ_FOREACH(tdtemp, rqh, td_runq){
+			printf("%d\n",tdtemp->td_proc->p_nice );
 			if( small_ticket_counter > tdtemp->td_proc->p_nice){
 				small_ticket_counter = tdtemp->td_proc->p_nice;
 			}
@@ -582,7 +584,9 @@ runq_lottery_remove(struct runq *rq, struct thread *td){
 	}
 
 	if(largest_nice_value == td->td_proc->p_nice){
+		printf("in largest nice\n");
 		TAILQ_FOREACH(tdtemp, rqh, td_runq){
+			printf("%d\n",tdtemp->td_proc->p_nice );
 			if( large_ticket_counter < tdtemp->td_proc->p_nice){
 				large_ticket_counter = tdtemp->td_proc->p_nice;
 			}
@@ -591,7 +595,7 @@ runq_lottery_remove(struct runq *rq, struct thread *td){
 	}
 
 	TAILQ_REMOVE(rqh, td, td_runq);
-	kernal_print(1);
+	// kernal_print(1);
 }
 
 /*
