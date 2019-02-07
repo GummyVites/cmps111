@@ -558,7 +558,8 @@ static __inline void
 runq_lottery_remove(struct runq *rq, struct thread *td){
 	struct rqhead *rqh;
 	long large_ticket_counter = 0;
-	long small_ticket_counter = LONG_MAX;
+	long small_ticket_counter = 9223372036854775807;
+	struct thread *tdtemp;
 	rqh = &rq->rq_queues[1];
 	// printf("runq_lottery_removed\n");
 	total_niceness -= 21;
@@ -571,23 +572,23 @@ runq_lottery_remove(struct runq *rq, struct thread *td){
 		largest_nice_value = 0;
 	}
 
-	// if(smallest_nice_value == td->td_proc->p_nice){
-	// 	TAILQ_FOREACH(td, rqh, td_runq){
-	// 		if( small_ticket_counter > td->td_proc->p_nice){
-	// 			small_ticket_counter = td->td_proc->p_nice;
-	// 		}
-	// }
-	// 	smallest_nice_value = small_ticket_counter;
-	// }
-	//
-	// if(largest_nice_value == td->td_proc->p_nice){
-	// 	TAILQ_FOREACH(td, rqh, td_runq){
-	// 		if( large_ticket_counter < td->td_proc->p_nice){
-	// 			large_ticket_counter = td->td_proc->p_nice;
-	// 		}
-	// 	}
-	// 	largest_nice_value = large_ticket_counter;
-	// }
+	if(smallest_nice_value == td->td_proc->p_nice){
+		TAILQ_FOREACH(tdtemp, rqh, td_runq){
+			if( small_ticket_counter > tdtemp->td_proc->p_nice){
+				small_ticket_counter = tdtemp->td_proc->p_nice;
+			}
+	}
+		smallest_nice_value = small_ticket_counter;
+	}
+
+	if(largest_nice_value == td->td_proc->p_nice){
+		TAILQ_FOREACH(tdtemp, rqh, td_runq){
+			if( large_ticket_counter < tdtemp->td_proc->p_nice){
+				large_ticket_counter = tdtemp->td_proc->p_nice;
+			}
+		}
+		largest_nice_value = large_ticket_counter;
+	}
 
 	TAILQ_REMOVE(rqh, td, td_runq);
 	kernal_print(1);
