@@ -571,8 +571,8 @@ runq_lottery_remove(struct runq *rq, struct thread *td){
 		smallest_nice_value = 0;
 		largest_nice_value = 0;
 	}
-	printf("%ld\n", smallest_nice_value);
-	printf("%d\n", td->td_proc->p_nice);
+	printf("smallest_nice_value%ld\n", smallest_nice_value);
+	printf("td niceness%d\n", td->td_proc->p_nice);
 	if(smallest_nice_value == td->td_proc->p_nice){
 		printf("in Smallest nice\n");
 		TAILQ_FOREACH(tdtemp, rqh, td_runq){
