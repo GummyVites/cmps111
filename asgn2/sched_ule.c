@@ -447,9 +447,15 @@ runq_add_lottery(struct runq *rq, struct thread *td){
 	lottery_queue_size += 1;
 	if(smallest_nice_value > nice_value){
 		smallest_nice_value = nice_value;
+		if (lottery_queue_size == 1) {
+			largest_nice_value = nice_value;
+		}
 	}
 	if(largest_nice_value < nice_value){
 		largest_nice_value = nice_value;
+		if (lottery_queue_size == 1) {
+			smallest_nice_value = nice_value;
+		}
 	}
 	add_remove_counter += 1;
 	kernal_print(0);
@@ -559,9 +565,9 @@ runq_lottery_remove(struct runq *rq, struct thread *td){
 	total_niceness -= td->td_proc->p_nice;
 	lottery_queue_size -= 1;
 	add_remove_counter += 1;
-	if(total_niceness == 0){
+	if(lottery_queue_size == 0){
 		smallest_nice_value = 0;
-		largest_nice_value = 0;						
+		largest_nice_value = 0;
 	}
 	// if(smallest_nice_value == td->td_proc->p_nice){
 	// 	TAILQ_FOREACH(td, rqh, td_runq){
