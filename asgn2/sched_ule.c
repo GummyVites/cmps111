@@ -571,7 +571,8 @@ runq_lottery_remove(struct runq *rq, struct thread *td){
 		smallest_nice_value = 0;
 		largest_nice_value = 0;
 	}
-
+	printf("%d\n", smallest_nice_value);
+	printf("%d\n", td->td_proc->p_nice);
 	if(smallest_nice_value == td->td_proc->p_nice){
 		printf("in Smallest nice\n");
 		TAILQ_FOREACH(tdtemp, rqh, td_runq){
@@ -1392,8 +1393,8 @@ runq_lottery_choose(struct runq *rq){
 	// kernal_print(1);
 	// printf("Initial current ticket value = %ld\n", current_ticket_value);
 	TAILQ_FOREACH(td, rqh, td_runq){
-		printf("current ticket value = %ld\n", current_ticket_value);
-		printf("rand_ticket = %ld\n", rand_ticket);
+		// printf("current ticket value = %ld\n", current_ticket_value);
+		// printf("rand_ticket = %ld\n", rand_ticket);
 		if( rand_ticket < current_ticket_value){
 			return td;
 		}
