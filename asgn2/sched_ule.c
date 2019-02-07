@@ -565,28 +565,30 @@ runq_lottery_remove(struct runq *rq, struct thread *td){
 	total_niceness -= td->td_proc->p_nice;
 	lottery_queue_size -= 1;
 	add_remove_counter += 1;
+
 	if(lottery_queue_size == 0){
 		smallest_nice_value = 0;
 		largest_nice_value = 0;
 	}
 
-	if(smallest_nice_value == td->td_proc->p_nice){
-		TAILQ_FOREACH(td, rqh, td_runq){
-			if( small_ticket_counter > td->td_proc->p_nice){
-				small_ticket_counter = td->td_proc->p_nice;
-			}
-	}
-		smallest_nice_value = small_ticket_counter;
-	}
+	// if(smallest_nice_value == td->td_proc->p_nice){
+	// 	TAILQ_FOREACH(td, rqh, td_runq){
+	// 		if( small_ticket_counter > td->td_proc->p_nice){
+	// 			small_ticket_counter = td->td_proc->p_nice;
+	// 		}
+	// }
+	// 	smallest_nice_value = small_ticket_counter;
+	// }
+	//
+	// if(largest_nice_value == td->td_proc->p_nice){
+	// 	TAILQ_FOREACH(td, rqh, td_runq){
+	// 		if( large_ticket_counter < td->td_proc->p_nice){
+	// 			large_ticket_counter = td->td_proc->p_nice;
+	// 		}
+	// 	}
+	// 	largest_nice_value = large_ticket_counter;
+	// }
 
-	if(largest_nice_value == td->td_proc->p_nice){
-		TAILQ_FOREACH(td, rqh, td_runq){
-			if( large_ticket_counter < td->td_proc->p_nice){
-				large_ticket_counter = td->td_proc->p_nice;
-			}
-		}
-		largest_nice_value = large_ticket_counter;
-	}
 	TAILQ_REMOVE(rqh, td, td_runq);
 	kernal_print(1);
 }
