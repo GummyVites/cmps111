@@ -585,7 +585,7 @@ runq_lottery_remove(struct runq *rq, struct thread *td){
 				large_ticket_counter = td->td_proc->p_nice;
 			}
 		}
-		largest_nice_value = large_ticket_counter
+		largest_nice_value = large_ticket_counter;
 	}
 	TAILQ_REMOVE(rqh, td, td_runq);
 	kernal_print(1);
